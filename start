@@ -3,6 +3,5 @@
 # A simple bash shell script to start the nodealbum server
 #
 
-echo Starting nodealbum server ...
-echo
+clear
 nodejs nodealbum.js

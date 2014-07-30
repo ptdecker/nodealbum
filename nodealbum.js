@@ -60,11 +60,11 @@ function load_album_list(callback) {
 
 function load_album(album_name, callback) {
 
-    fs.readdir("albums/" + album_name, function (err, files) {
+    fs.readdir("albums" + album_name, function (err, files) {
 
         if (err) {
             if (err.code == "ENOENT") {
-                callback(no_such_album());
+                callback(no_such_album(album_name));
             } else {
                 callback(make_error("file_error", JSON.stringify(err)));
             }
@@ -72,13 +72,13 @@ function load_album(album_name, callback) {
         }
 
         var only_files = [];
-        var path = "albums/" + album_name + "/";
+        var path = "albums" + album_name + "/";
 
         (function iterator(index) {
 
             if (index == files.length) {
                 var obj = {
-                    "short_name": album_name,
+                    "short_name": album_name.substr(1, album_name.length - 1),
                     "photos": only_files
                 };
                 callback(null, obj);
@@ -195,10 +195,11 @@ function send_success(res, data) {
  */
 
 function send_failure(res, code, err) {
-    var code = (err.code) ? err.code : err.name;
+    var output = { "error": (err.code) ? err.code : err.name, "message": err.message };
     res.writeHead(code, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ "error": code, "message": err.message }) + "\n");
+    res.end(JSON.stringify(output) + "\n");
 }
+
 
 /*
  * invalid_resource: handle an invalid resource error
@@ -212,8 +213,8 @@ function invalid_resource() {
  * no_such_album: handle a 'no such album' error
  */
 
-function no_such_album() {
-    return make_error("no_such_album", "The specified album does not exist.");
+function no_such_album(album_name) {
+    return make_error("no_such_album", "The specified album '" + album_name.substr(1, album_name.length - 1) + "' does not exist.");
 }
 
 /*
@@ -226,9 +227,19 @@ console.log(" _ __   ___   __| | ___  __ _| | |__  _   _ _ __ ___");
 console.log("| '_ \\ / _ \\ / _` |/ _ \\/ _` | | '_ \\| | | | '_ ` _ \\");
 console.log("| | | | (_) | (_| |  __/ (_| | | |_) | |_| | | | | | |");
 console.log("|_| |_|\\___/ \\__,_|\\___|\\__,_|_|_.__/ \\__,_|_| |_| |_|");
-console.log("");                                                      
-console.log("Ready for incoming requests (port 8080), press 'Ctrl-C' to exit.");
 console.log("");
 
 var s = http.createServer(handle_incoming_request);
+
+s.once('listening', function() {
+    console.log("Ready for incoming requests (port 8080), press 'Ctrl-C' to exit.");
+    console.log("");
+});
+
+s.once('error',function(err) {
+    console.log("Cannot start server because port 8080 seems to already be in use.");
+    console.log("");
+});
+
 s.listen(8080);
+
