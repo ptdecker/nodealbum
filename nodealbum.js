@@ -112,6 +112,16 @@ function load_album(album_name, page, page_size, callback) {
 } // load_album
 
 /*
+ * do_rename: rename a photo album
+ */
+
+function do_rename(old_name, new_name, callback) {
+
+    fs.rename("albums/" + old_name, "albums/" + new_name, callback);
+
+}
+
+/*
  * handle_incoming_request: dispatch incoming JSON request
  */
 
@@ -119,11 +129,18 @@ function handle_incoming_request(req, res) {
 
     console.log("HANDLING: " + req.method + " " + req.url);
 
+    // add the parsed_url attribute to the request object and
+    // determine the path without the parameters
+
     req.parsed_url = url.parse(req.url, true);
     var core_url = req.parsed_url.pathname;
 
-    if (core_url == '/albums.json') {
+    // dispatch based upon the call
+
+    if (core_url == '/albums.json' && req.method.toLowerCase() == 'get') {
         handle_list_albums(req, res);
+    } else if (core_url.substr(core_url.length - 12) == '/rename.json' && req.method.toLowerCase() == 'post') {
+        handle_rename_album(req, res);
     } else if (core_url.substr(0, 7) == '/albums' && core_url.substr(core_url.length - 5) == '.json') {
         handle_get_album(req, res);
     } else {
@@ -191,6 +208,85 @@ function handle_get_album(req, res) {
 
 } // handle_get_album
 
+
+/*
+ * handle_rename_album: handle a rename album POST request
+ *
+ */
+
+function handle_rename_album(req, res) {
+
+    // Get the album name from the URL
+
+    var core_url = req.parsed_url.pathname;
+    var parts = core_url.split('/');
+    if (parts.length != 4) {
+        send_failure(res, 404, invalid_resource(core_url));
+        return;
+    }
+    var album_name = parts[2];
+
+    // Get the POST data from the request.
+    // This will be the JSON for the new album name
+
+    var json_body = '';
+    req.on('readable', function() {
+        var d = req.read();
+        if (d) {
+            if (typeof d == 'string') {
+                json_body += d;
+            } else if (typeof d == 'object' && d instanceof Buffer) {
+                json_body += d.toString('utf8');
+            }
+        }
+    }); // req.on('readable'
+
+    // When we have all the post data, make sure that
+    // the data is valid and then try to do the rename
+
+
+    req.on('end', function() {
+
+        if (json_body) {
+
+            // We receive a body, now check and see if it is valid
+            // JSON and contains the correct parameters
+
+            try {
+                var album_data = JSON.parse(json_body);
+                if (!album_data.album_name) {
+                    send_failure(res, 403, missing_data('album_name'));
+                    return;
+                }
+            } catch (err) {
+                send_failure(res, 403, bad_json());
+            }
+
+
+            // Do the actual renaming
+
+            do_rename(album_name, album_data.album_name, function(err, results) {
+                if (err && err.code == "ENOENT") {
+                    send_failure(res, 403, no_such_album(album_name));
+                    return;
+                } else if (err) {
+                    send_failure(res, 500, file_error(err));
+                    return;
+                }
+                send_success(res, null);
+            });
+
+        } else {
+
+            send_failure(res, 403, bad_json());
+            res.end();
+
+        }
+
+    }); // req.on('end'
+
+} // handle_rename_album
+
 /*
  * make_error: create an error message
  */
@@ -235,7 +331,31 @@ function invalid_resource() {
  */
 
 function no_such_album(album_name) {
-    return make_error("no_such_album", "The specified album '" + album_name.substr(1, album_name.length - 1) + "' does not exist.");
+    return make_error("no_such_album", "The specified album '" + album_name + "' does not exist.");
+}
+
+/*
+ * file_error: handle a file error
+ */
+
+function file_error(err) {
+    return make_error("server_file_error", "There was a file error on the server: " + err.message);
+}
+
+/*
+ * missing_data: handle missing data errors
+ */
+
+function missing_data (missing) {
+    return make_error("missing_data", "Your request is missing" + (missing ? ": '" + missing + "'." : " some data."));
+}
+
+/*
+ * bad_json: handle bad JSON error
+ */
+
+function bad_json() {
+    return make_error("invalid_json", "The provided data is not valid JSON");
 }
 
 /*
