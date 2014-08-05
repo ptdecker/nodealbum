@@ -16,7 +16,7 @@ $(function(){
         });
 
         // Retrieve the server data and then initialise the page  
-        $.getJSON("/albums/" + album_name + ".json", function (d) {
+        $.getJSON("/v1/albums/" + album_name + ".json", function (d) {
             var photo_d = massage_album(d);
             $.extend(tdata, photo_d);
         });

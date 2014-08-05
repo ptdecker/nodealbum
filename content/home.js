@@ -8,7 +8,7 @@ $(function() {
             tmpl = d;
         });
 
-        $.getJSON("/albums.json", function(d) {
+        $.getJSON("/v1/albums.json", function(d) {
             $.extend(tdata, d.data);
         });
 

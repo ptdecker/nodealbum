@@ -6,8 +6,8 @@ var path = require("path"),
     async = require('async'),
     fs = require('fs');
 
-app.get('/albums.json', handle_list_albums);
-app.get('/albums/:album_name.json', handle_get_album);
+app.get('/v1/albums.json', handle_list_albums);
+app.get('/v1/albums/:album_name.json', handle_get_album);
 app.get('/content/:filename', function (req, res) {
     serve_static_file('content/' + req.params.filename, res);
 });
@@ -26,9 +26,9 @@ function four_oh_four(req, res) {
 }
 
 function serve_static_file(file, res) {
-    res.writeHead(200, { "Content-Type" : ct });
     var ct = content_type_for_file(file);
     var rs = fs.createReadStream(file);
+    res.writeHead(200, { "Content-Type" : ct });
     rs.on('error', function (e) {
         var out = { error: "not_found", message: "'" + file + "' not found" };
         res.writeHead(404, { "Content-Type" : "application/json" });
