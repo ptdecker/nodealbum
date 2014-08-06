@@ -8,12 +8,14 @@ var fs = require('fs'),
     page_hdlr = require('./handlers/pages.js'),
     helpers = require('./handlers/helpers.js');
 
+app.use(express.static(__dirname + "/../static"));
 
 app.get('/v1/albums.json', album_hdlr.list_all);
 app.get('/v1/albums/:album_name.json', album_hdlr.album_by_name);
 app.get('/pages/:page_name', page_hdlr.generate);
 app.get('/pages/:page_name/:sub_page', page_hdlr.generate);
 
+/*
 app.get('/content/:filename', function (req, res) {
     serve_static_file('../static/content/' + req.params.filename, res);
 });
@@ -24,6 +26,13 @@ app.get('/albums/:album_name/:filename', function (req, res) {
 app.get('/templates/:template_name', function (req, res) {
     serve_static_file("../static/templates/" + req.params.template_name, res);
 });
+*/
+
+app.get("/", function (req, res) {
+    res.redirect("/pages/home");
+    res.end();
+});
+
 app.get('*', four_oh_four);
 
 
@@ -31,6 +40,8 @@ function four_oh_four(req, res) {
     res.writeHead(404, { "Content-Type" : "application/json" });
     res.end(JSON.stringify(helpers.invalid_resource()) + "\n");
 }
+
+/*
 
 function serve_static_file(file, res) {
     fs.exists(file, function (exists) {
@@ -68,6 +79,8 @@ function content_type_for_file (file) {
         default: return 'text/plain';
     }
 }
+
+*/
 
 /*
  * Main body
