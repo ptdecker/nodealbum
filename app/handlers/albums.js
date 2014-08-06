@@ -51,7 +51,7 @@ function load_album_list(callback) {
     // we will just assume that any directory in our 'albums'
     // subfolder is an album.
     fs.readdir(
-        "albums",
+        "../static/albums",
         function (err, files) {
             if (err) {
                 callback(helpers.make_error("file_error", JSON.stringify(err)));
@@ -63,7 +63,7 @@ function load_album_list(callback) {
                 files,
                 function (element, cb) {
                     fs.stat(
-                        "albums/" + element,
+                        "../static/albums/" + element,
                         function (err, stats) {
                             if (err) {
                                 cb(helpers.make_error("file_error",
@@ -87,7 +87,7 @@ function load_album_list(callback) {
 
 function load_album(album_name, page, page_size, callback) {
     fs.readdir(
-        "albums/" + album_name,
+        "../static/albums/" + album_name,
         function (err, files) {
             if (err) {
                 if (err.code == "ENOENT") {
@@ -100,7 +100,7 @@ function load_album(album_name, page, page_size, callback) {
             }
 
             var only_files = [];
-            var path = "albums/" + album_name + "/";
+            var path = "../static/albums/" + album_name + "/";
 
             async.forEach(
                 files,

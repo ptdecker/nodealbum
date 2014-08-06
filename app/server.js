@@ -15,14 +15,14 @@ app.get('/pages/:page_name', page_hdlr.generate);
 app.get('/pages/:page_name/:sub_page', page_hdlr.generate);
 
 app.get('/content/:filename', function (req, res) {
-    serve_static_file('content/' + req.params.filename, res);
+    serve_static_file('../static/content/' + req.params.filename, res);
 });
 app.get('/albums/:album_name/:filename', function (req, res) {
-    serve_static_file('albums/' + req.params.album_name + "/"
+    serve_static_file('../static/albums/' + req.params.album_name + "/"
                       + req.params.filename, res);
 });
 app.get('/templates/:template_name', function (req, res) {
-    serve_static_file("templates/" + req.params.template_name, res);
+    serve_static_file("../static/templates/" + req.params.template_name, res);
 });
 app.get('*', four_oh_four);
 
@@ -68,5 +68,19 @@ function content_type_for_file (file) {
         default: return 'text/plain';
     }
 }
+
+/*
+ * Main body
+ */
+
+console.log("                 _            _ _");
+console.log("                | |          | | |");
+console.log(" _ __   ___   __| | ___  __ _| | |__  _   _ _ __ ___");
+console.log("| '_ \\ / _ \\ / _` |/ _ \\/ _` | | '_ \\| | | | '_ ` _ \\");
+console.log("| | | | (_) | (_| |  __/ (_| | | |_) | |_| | | | | | |");
+console.log("|_| |_|\\___/ \\__,_|\\___|\\__,_|_|_.__/ \\__,_|_| |_| |_|");
+console.log("");
+console.log("Ready for incoming requests (port 8080), press 'Ctrl-C' to exit.");
+console.log("");
 
 app.listen(8080);

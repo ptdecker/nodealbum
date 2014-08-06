@@ -4,4 +4,6 @@
 #
 
 clear
-nodejs nodealbum.js
+cd ./app
+nodejs server.js
+cd ..
